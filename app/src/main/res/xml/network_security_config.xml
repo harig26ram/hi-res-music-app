@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">monochrome.tf</domain>
+        <domain includeSubdomains="true">monochrome.samidy.com</domain>
+        <domain includeSubdomains="true">samidy.com</domain>
+        <domain includeSubdomains="true">lossless.wtf</domain>
+        <domain includeSubdomains="true">tidal.com</domain>
+        <domain includeSubdomains="true">workers.dev</domain>
+    </domain-config>
+</network-security-config>

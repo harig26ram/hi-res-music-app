@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">Monochrome</string>
+    <string name="pull_to_reload_hold">3</string>
+    <string name="pull_to_reload_reloading_in">%d</string>
+    <string name="reloading">Reloading…</string>
+    <string name="storage_permission_denied">Storage permission denied</string>
+    <string name="no_audio_files_found">No audio files found</string>
+    <string name="loading_message">Loading…</string>
+    <string name="splash_subtitle">Hi-Res Music Streaming</string>
+    <string name="credit_by">By Panda9241</string>
+    <plurals name="loaded_tracks">
+        <item quantity="one">Loaded %d track</item>
+        <item quantity="other">Loaded %d tracks</item>
+    </plurals>
+    <string name="preparing_file">Preparing: %s…</string>
+    <string name="downloading_file">Downloading: %s</string>
+    <string name="download_failed">Download failed: %s</string>
+    <string name="saved_file">Saved: %s</string>
+    <string name="unsupported_download_type">Unsupported download type</string>
+</resources>
