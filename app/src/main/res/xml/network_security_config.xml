@@ -6,12 +6,25 @@
         </trust-anchors>
     </base-config>
     
-    <domain-config cleartextTrafficPermitted="false">
+    <domain-config cleartextTrafficPermitted="true">
         <domain includeSubdomains="true">monochrome.tf</domain>
         <domain includeSubdomains="true">monochrome.samidy.com</domain>
         <domain includeSubdomains="true">samidy.com</domain>
         <domain includeSubdomains="true">lossless.wtf</domain>
         <domain includeSubdomains="true">workers.dev</domain>
+        <domain includeSubdomains="true">tidal.com</domain>
+        <domain includeSubdomains="true">qobuz.com</domain>
+        <domain includeSubdomains="true">deezer.com</domain>
+        <domain includeSubdomains="true">dzcdn.net</domain>
+        <domain includeSubdomains="true">amazonaws.com</domain>
+        <domain includeSubdomains="true">cloudfront.net</domain>
+        <domain includeSubdomains="true">archive.org</domain>
+        <domain includeSubdomains="true">soundcloud.com</domain>
+        <domain includeSubdomains="true">sndcdn.com</domain>
+        <domain includeSubdomains="true">spotify.com</domain>
+        <domain includeSubdomains="true">scdn.co</domain>
+        <domain includeSubdomains="true">jsdelivr.net</domain>
+        <domain includeSubdomains="true">unpkg.com</domain>
         <trust-anchors>
             <certificates src="system" />
         </trust-anchors>

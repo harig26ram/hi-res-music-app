@@ -8,24 +8,13 @@
         android:translateX="22"
         android:translateY="22">
         <path
-            android:fillColor="#0D0D0D"
+            android:fillColor="#000000"
             android:pathData="M0,0h64v64H0z"/>
         <path
-            android:strokeColor="#FFFFFF"
-            android:strokeWidth="2.5"
-            android:fillColor="#00000000"
-            android:pathData="M8,52 L13,32 L19,48 L27,26 L35,48 L43,32 L48,52"/>
-        <path
-            android:strokeColor="#00D4FF"
-            android:strokeWidth="1.8"
-            android:fillColor="#00000000"
-            android:pathData="M5,56 Q10,24 16,44 Q22,16 30,44 Q38,16 44,44 Q50,24 56,56"
-            android:strokeLineCap="round"/>
+            android:fillColor="#00D4FF"
+            android:pathData="M12,52 L20,20 L28,44 L36,14 L44,44 L52,20 L60,52 L54,52 L48,32 L40,52 L32,32 L24,52z"/>
         <path
             android:fillColor="#FFFFFF"
-            android:pathData="M58,24 L64,24 L64,56 L58,56z"/>
-        <path
-            android:fillColor="#00D4FF"
-            android:pathData="M58,24 L62,24 L62,38 L58,38z"/>
+            android:pathData="M8,56 L56,56 L56,60 L8,60z"/>
     </group>
 </vector>

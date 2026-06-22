@@ -74,11 +74,11 @@ object NetworkHelper {
             val isWorker = host.endsWith(".workers.dev")
             val path = url.path?.lowercase() ?: ""
 
-            val conn = (url.openConnection() as HttpURLConnection).apply {
+            var conn = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = method
                 connectTimeout = 15000
-                readTimeout = 30000
-                instanceFollowRedirects = false
+                readTimeout = 60000
+                instanceFollowRedirects = true
                 doInput = true
             }
 
@@ -92,6 +92,7 @@ object NetworkHelper {
             conn.setRequestProperty("Origin", request.requestHeaders?.get("Origin") ?: "https://$host")
             conn.setRequestProperty("Referer", request.requestHeaders?.get("Referer") ?: "https://$host/")
             conn.setRequestProperty("X-Forwarded-Proto", "https")
+            conn.setRequestProperty("Accept", request.requestHeaders?.get("Accept") ?: "*/*")
 
             request.requestHeaders?.get("Range")?.let {
                 conn.setRequestProperty("Range", it)
@@ -102,7 +103,31 @@ object NetworkHelper {
             }
             conn.connect()
 
-            var mime = conn.contentType?.substringBefore(";")?.trim() ?: "application/octet-stream"
+            var responseCode = conn.responseCode
+            var finalConn = conn
+            var redirectCount = 0
+            while ((responseCode == 301 || responseCode == 302 || responseCode == 307 || responseCode == 308) && redirectCount < 5) {
+                val location = conn.getHeaderField("Location") ?: break
+                conn.disconnect()
+                val redirectUrl = if (location.startsWith("http")) location else "https://$host$location"
+                finalConn = (URL(redirectUrl).openConnection() as HttpURLConnection).apply {
+                    requestMethod = method
+                    connectTimeout = 15000
+                    readTimeout = 60000
+                    instanceFollowRedirects = true
+                    doInput = true
+                    setRequestProperty("User-Agent", Constants.PROXY_UA)
+                    setRequestProperty("Accept", request.requestHeaders?.get("Accept") ?: "*/*")
+                    request.requestHeaders?.get("Range")?.let { setRequestProperty("Range", it) }
+                    CookieManager.getInstance().getCookie(request.url.toString())?.let { setRequestProperty("Cookie", it) }
+                }
+                finalConn.connect()
+                responseCode = finalConn.responseCode
+                conn = finalConn
+                redirectCount++
+            }
+
+            var mime = finalConn.contentType?.substringBefore(";")?.trim() ?: "application/octet-stream"
             if (mime == "text/html") {
                 if (path.endsWith(".js")) mime = "application/javascript"
                 else if (path.endsWith(".css")) mime = "text/css"
@@ -135,7 +160,7 @@ object NetworkHelper {
                 "Content-Security-Policy", "X-Frame-Options", "Content-Length",
                 "Transfer-Encoding", "Content-Encoding", "Vary", "Set-Cookie"
             )
-            conn.headerFields.forEach { (k, v) ->
+            finalConn.headerFields.forEach { (k, v) ->
                 if (k != null && !restrictedHeaders.any { it.equals(k, ignoreCase = true) }) {
                     var value = v.joinToString(", ")
                     if (k.equals("Location", true))
@@ -156,11 +181,11 @@ object NetworkHelper {
                 respHeaders["Cache-Control"] = "no-cache"
             }
 
-            val responseCode = conn.responseCode
-            val stream = if (responseCode >= 400) conn.errorStream ?: ByteArrayInputStream(ByteArray(0))
-            else conn.inputStream
+            val responseCode = finalConn.responseCode
+            val stream = if (responseCode >= 400) finalConn.errorStream ?: ByteArrayInputStream(ByteArray(0))
+            else finalConn.inputStream
 
-            WebResourceResponse(mime, null, responseCode, conn.responseMessage ?: "OK", respHeaders, stream)
+            WebResourceResponse(mime, null, responseCode, finalConn.responseMessage ?: "OK", respHeaders, stream)
         } catch (e: Exception) {
             android.util.Log.e("MonochromeNet", "proxyWithCors error: ${e.message}", e)
             null
