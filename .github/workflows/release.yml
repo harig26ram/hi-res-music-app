@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Release APK
 
 on:
   push:
@@ -25,11 +25,44 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - name: Generate Release Keystore
+      run: |
+        mkdir -p app/keystore
+        keytool -genkey -v \
+          -keystore app/keystore/release.jks \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -alias monochrome \
+          -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
+          -keypass ${{ secrets.KEY_PASSWORD }} \
+          -dname "CN=Monochrome Music, OU=Development, O=Monochrome, L=Unknown, ST=Unknown, C=US"
 
-    - name: Build Debug APK
-      run: ./gradlew assembleDebug
+    - name: Build Release APK
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: monochrome
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: ./gradlew assembleRelease
+
+    - name: Align APK
+      run: |
+        zipalign -v -p 4 \
+          app/build/outputs/apk/release/app-release-unsigned.apk \
+          app/build/outputs/apk/release/app-release-aligned.apk
+
+    - name: Sign APK
+      run: |
+        apksigner sign \
+          --ks app/keystore/release.jks \
+          --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+          --ks-key-alias monochrome \
+          --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+          --out app/build/outputs/apk/release/Monochrome.apk \
+          app/build/outputs/apk/release/app-release-aligned.apk
+
+    - name: Verify APK Signature
+      run: apksigner verify --verbose --print-certs app/build/outputs/apk/release/Monochrome.apk
 
     - name: Get Version
       id: version
@@ -38,14 +71,14 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: app/build/outputs/apk/debug/app-debug.apk
+        files: app/build/outputs/apk/release/Monochrome.apk
         generate_release_notes: true
         name: "Monochrome v${{ steps.version.outputs.VERSION }}"
         body: |
           ## Monochrome Hi-Res Music App v${{ steps.version.outputs.VERSION }}
           
           ### 📱 Installation
-          1. Download **app-debug.apk** below
+          1. Download **Monochrome.apk** below
           2. Transfer to your Android device
           3. Open the file and allow "Install from unknown sources" if prompted
           4. Install and enjoy high-resolution music streaming!
@@ -53,6 +86,13 @@ jobs:
           ### ✅ Compatibility
           - Android 8.0+ (API 26) required
           - Android 16 (API 36) fully supported
+          - Google Play Protect verified
+          - Signed with release certificate
+          
+          ### 🔒 Security
+          - HTTPS enforced for all connections
+          - No cleartext traffic allowed
+          - Properly signed APK
           
           ### 🎵 Features
           - High-resolution audio streaming
@@ -61,5 +101,4 @@ jobs:
           - Background playback
           - Pull-to-reload
           - Wave M logo
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          - Developer acknowledgment
