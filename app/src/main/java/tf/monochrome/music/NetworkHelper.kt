@@ -181,11 +181,11 @@ object NetworkHelper {
                 respHeaders["Cache-Control"] = "no-cache"
             }
 
-            val responseCode = finalConn.responseCode
-            val stream = if (responseCode >= 400) finalConn.errorStream ?: ByteArrayInputStream(ByteArray(0))
+            val finalResponseCode = finalConn.responseCode
+            val stream = if (finalResponseCode >= 400) finalConn.errorStream ?: ByteArrayInputStream(ByteArray(0))
             else finalConn.inputStream
 
-            WebResourceResponse(mime, null, responseCode, finalConn.responseMessage ?: "OK", respHeaders, stream)
+            WebResourceResponse(mime, null, finalResponseCode, finalConn.responseMessage ?: "OK", respHeaders, stream)
         } catch (e: Exception) {
             android.util.Log.e("MonochromeNet", "proxyWithCors error: ${e.message}", e)
             null
