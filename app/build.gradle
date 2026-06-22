@@ -15,21 +15,11 @@ android {
         versionName "2.0"
     }
 
-    signingConfigs {
-        release {
-            storeFile file("keystore/release.jks")
-            storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
-            keyAlias System.getenv("KEY_ALIAS") ?: "monochrome"
-            keyPassword System.getenv("KEY_PASSWORD") ?: ""
-        }
-    }
-
     buildTypes {
         release {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
         }
         debug {
             applicationIdSuffix ".debug"
