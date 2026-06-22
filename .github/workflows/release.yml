@@ -1,9 +1,10 @@
-name: Release APK
+name: Build Signed APK
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,14 +22,63 @@ jobs:
     - name: Setup Android SDK
       uses: android-actions/setup-android@v3
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - name: Generate Keystore
+      run: |
+        keytool -genkey -v \
+          -keystore release.jks \
+          -keyalg RSA \
+          -keysize 2048 \
+          -validity 10000 \
+          -alias monochrome \
+          -storepass ${{ secrets.KEYSTORE_PASSWORD }} \
+          -keypass ${{ secrets.KEY_PASSWORD }} \
+          -dname "CN=Monochrome, OU=Music, O=Monochrome, L=Unknown, ST=Unknown, C=US"
 
     - name: Build Release APK
+      env:
+        KEYSTORE_PATH: release.jks
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: monochrome
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: ./gradlew assembleRelease
+
+    - name: Align APK
+      run: |
+        zipalign -v -p 4 \
+          app/build/outputs/apk/release/app-release-unsigned.apk \
+          app-release-aligned.apk
+
+    - name: Sign APK
+      run: |
+        apksigner sign \
+          --ks release.jks \
+          --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
+          --ks-key-alias monochrome \
+          --key-pass pass:${{ secrets.KEY_PASSWORD }} \
+          --out Monochrome-v${GITHUB_REF_NAME#v}.apk \
+          app-release-aligned.apk
+
+    - name: Verify APK
+      run: apksigner verify --verbose Monochrome-v${GITHUB_REF_NAME#v}.apk
 
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        files: app/build/outputs/apk/release/app-release-unsigned.apk
+        files: Monochrome-v${GITHUB_REF_NAME#v}.apk
         generate_release_notes: true
+        body: |
+          ## Monochrome v${{ github.ref_name }}
+          
+          ### Installation
+          1. Download the APK below
+          2. Transfer to your Android device
+          3. Open the file and allow "Install from unknown sources"
+          4. Install and enjoy!
+          
+          ### Compatibility
+          - Android 8.0+ (API 26)
+          - Android 16 ready (API 36)
+          
+          ### What's New
+          - Wave M logo redesign
+          - Performance improvements
