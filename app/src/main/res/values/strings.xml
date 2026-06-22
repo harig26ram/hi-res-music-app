@@ -8,6 +8,8 @@
     <string name="loading_message">Loading…</string>
     <string name="splash_subtitle">Hi-Res Music Streaming</string>
     <string name="credit_by">By Panda9241</string>
+    <string name="acknowledgment">Based on monochrome.tf by Samidy</string>
+    <string name="acknowledgment_detail">Original project: monochrome.tf</string>
     <plurals name="loaded_tracks">
         <item quantity="one">Loaded %d track</item>
         <item quantity="other">Loaded %d tracks</item>

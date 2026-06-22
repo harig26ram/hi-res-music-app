@@ -61,18 +61,39 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/splashCredit"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/splashFooter"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:layout_marginBottom="32dp"
-        android:text="@string/credit_by"
-        android:textColor="#40FFFFFF"
-        android:textSize="12sp"
-        android:fontFamily="sans-serif-light"
-        android:letterSpacing="0.06"
-        android:visibility="visible" />
+        android:layout_gravity="bottom"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:paddingBottom="24dp">
+
+        <TextView
+            android:id="@+id/splashCredit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/acknowledgment"
+            android:textColor="#66FFFFFF"
+            android:textSize="11sp"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.04"
+            android:visibility="visible" />
+
+        <TextView
+            android:id="@+id/splashCreditDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="@string/credit_by"
+            android:textColor="#40FFFFFF"
+            android:textSize="10sp"
+            android:fontFamily="sans-serif-light"
+            android:letterSpacing="0.04"
+            android:visibility="visible" />
+
+    </LinearLayout>
 
     <TextView
         android:id="@+id/pullIndicator"

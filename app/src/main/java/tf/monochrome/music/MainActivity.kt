@@ -257,13 +257,13 @@ class MainActivity : AppCompatActivity() {
             CookieManager.getInstance().flush()
 
             if (binding.splashScreen.visibility == View.VISIBLE) {
-                binding.splashCredit.animate().alpha(0f).setDuration(150).start()
+                binding.splashFooter.animate().alpha(0f).setDuration(150).start()
                 binding.splashScreen.animate()
                     .alpha(0f)
                     .setDuration(200)
                     .withEndAction {
                         binding.splashScreen.visibility = View.GONE
-                        binding.splashCredit.visibility = View.GONE
+                        binding.splashFooter.visibility = View.GONE
                     }
                     .start()
             }

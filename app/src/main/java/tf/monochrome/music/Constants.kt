@@ -526,6 +526,34 @@ object Constants {
       opacity: 0.4 !important;
     }
 
+    /* Bottom panel alignment */
+    [class*="bottom-bar"], [class*="bottom-nav"], [class*="bottom-panel"],
+    [class*="player-bar"], [class*="now-playing-bar"], [class*="mini-player"] {
+      position: fixed !important;
+      bottom: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      z-index: 9999 !important;
+      padding-bottom: env(safe-area-inset-bottom, 0) !important;
+    }
+
+    /* Cast button - bottom right corner */
+    [class*="cast"], [class*="chromecast"], [data-action="cast"],
+    button[aria-label*="cast" i], button[aria-label*="Cast" i] {
+      position: fixed !important;
+      bottom: 80px !important;
+      right: 12px !important;
+      z-index: 10000 !important;
+      opacity: 0.7 !important;
+    }
+
+    /* Safe area padding for notched devices */
+    @supports (padding-bottom: env(safe-area-inset-bottom)) {
+      [class*="player"], [class*="Player"], [class*="bottom"] {
+        padding-bottom: env(safe-area-inset-bottom) !important;
+      }
+    }
+
     /* Smooth content load */
     @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     [class*="home"] > *, [class*="content"] > *, main > * {
