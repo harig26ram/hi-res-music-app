@@ -211,7 +211,7 @@ class MainActivity : AppCompatActivity() {
             builtInZoomControls = false
             displayZoomControls = false
             userAgentString = PROXY_UA
-            safeBrowsingEnabled = false
+            safeBrowsingEnabled = true
             cacheMode = WebSettings.LOAD_DEFAULT
             @Suppress("DEPRECATION")
             databaseEnabled = true
