@@ -181,6 +181,50 @@ object Constants {
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'MediaTrackPrevious', bubbles: true }));
       document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', shiftKey: true, bubbles: true }));
     };
+
+    if(!window.__mcAudioFix){
+      window.__mcAudioFix = true;
+      var _audioRetryCount = {};
+      var MAX_AUDIO_RETRIES = 3;
+
+      function patchAudioElement(a){
+        if(a.__mcPatched) return;
+        a.__mcPatched = true;
+
+        a.addEventListener('error', function(e){
+          var src = a.src || a.currentSrc || '';
+          if(!src) return;
+          var retryKey = src.substring(0, 100);
+          if(!_audioRetryCount[retryKey]) _audioRetryCount[retryKey] = 0;
+
+          if(_audioRetryCount[retryKey] < MAX_AUDIO_RETRIES){
+            _audioRetryCount[retryKey]++;
+            var delay = _audioRetryCount[retryKey] * 1000;
+            setTimeout(function(){
+              a.src = src;
+              a.load();
+            }, delay);
+          } else {
+            if(typeof MonochromeApp !== 'undefined') MonochromeApp.onPlaybackError('Audio load failed after retries: ' + src);
+            delete _audioRetryCount[retryKey];
+          }
+        }, true);
+
+        a.addEventListener('playing', function(){
+          var src = a.src || a.currentSrc || '';
+          var retryKey = src.substring(0, 100);
+          delete _audioRetryCount[retryKey];
+        }, true);
+      }
+
+      function scanAndPatchAudio(){
+        document.querySelectorAll('audio, video').forEach(patchAudioElement);
+      }
+
+      var _audioObs = new MutationObserver(scanAndPatchAudio);
+      _audioObs.observe(document.documentElement, { childList: true, subtree: true });
+      scanAndPatchAudio();
+    }
   }
 
   if(!window.__mcLocal){

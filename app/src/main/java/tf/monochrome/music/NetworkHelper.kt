@@ -72,11 +72,12 @@ object NetworkHelper {
             val url = URL(request.url.toString())
             val host = url.host ?: ""
             val isWorker = host.endsWith(".workers.dev")
+            val path = url.path?.lowercase() ?: ""
 
             val conn = (url.openConnection() as HttpURLConnection).apply {
                 requestMethod = method
                 connectTimeout = 15000
-                readTimeout = 15000
+                readTimeout = 30000
                 instanceFollowRedirects = false
                 doInput = true
             }
@@ -92,6 +93,10 @@ object NetworkHelper {
             conn.setRequestProperty("Referer", request.requestHeaders?.get("Referer") ?: "https://$host/")
             conn.setRequestProperty("X-Forwarded-Proto", "https")
 
+            request.requestHeaders?.get("Range")?.let {
+                conn.setRequestProperty("Range", it)
+            }
+
             CookieManager.getInstance().getCookie(request.url.toString())?.let {
                 conn.setRequestProperty("Cookie", it)
             }
@@ -99,9 +104,28 @@ object NetworkHelper {
 
             var mime = conn.contentType?.substringBefore(";")?.trim() ?: "application/octet-stream"
             if (mime == "text/html") {
-                val path = url.path.lowercase()
                 if (path.endsWith(".js")) mime = "application/javascript"
                 else if (path.endsWith(".css")) mime = "text/css"
+                else if (path.endsWith(".mp3")) mime = "audio/mpeg"
+                else if (path.endsWith(".flac")) mime = "audio/flac"
+                else if (path.endsWith(".wav")) mime = "audio/wav"
+                else if (path.endsWith(".m4a")) mime = "audio/mp4"
+                else if (path.endsWith(".ogg")) mime = "audio/ogg"
+                else if (path.endsWith(".aac")) mime = "audio/aac"
+            }
+
+            val audioExtensions = listOf(".mp3", ".flac", ".wav", ".aac", ".ogg", ".opus", ".m4a", ".alac", ".aiff", ".dsf", ".dff", ".wv", ".ape")
+            val isAudio = audioExtensions.any { path.endsWith(it) }
+            if (isAudio && !mime.startsWith("audio/")) {
+                when {
+                    path.endsWith(".mp3") -> mime = "audio/mpeg"
+                    path.endsWith(".flac") -> mime = "audio/flac"
+                    path.endsWith(".wav") -> mime = "audio/wav"
+                    path.endsWith(".m4a") -> mime = "audio/mp4"
+                    path.endsWith(".aac") -> mime = "audio/aac"
+                    path.endsWith(".ogg") || path.endsWith(".opus") -> mime = "audio/ogg"
+                    else -> mime = "audio/mpeg"
+                }
             }
 
             val respHeaders = LinkedHashMap<String, String>()
@@ -127,9 +151,16 @@ object NetworkHelper {
             respHeaders["Access-Control-Allow-Headers"] = "*"
             respHeaders["Access-Control-Allow-Credentials"] = "true"
 
-            val stream = if (conn.responseCode >= 400) conn.errorStream ?: ByteArrayInputStream(ByteArray(0))
+            if (isAudio) {
+                respHeaders["Accept-Ranges"] = "bytes"
+                respHeaders["Cache-Control"] = "no-cache"
+            }
+
+            val responseCode = conn.responseCode
+            val stream = if (responseCode >= 400) conn.errorStream ?: ByteArrayInputStream(ByteArray(0))
             else conn.inputStream
-            WebResourceResponse(mime, null, conn.responseCode, conn.responseMessage ?: "OK", respHeaders, stream)
+
+            WebResourceResponse(mime, null, responseCode, conn.responseMessage ?: "OK", respHeaders, stream)
         } catch (e: Exception) {
             android.util.Log.e("MonochromeNet", "proxyWithCors error: ${e.message}", e)
             null

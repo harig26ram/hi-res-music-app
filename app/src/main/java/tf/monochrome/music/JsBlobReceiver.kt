@@ -79,6 +79,13 @@ class JsBlobReceiver(private val context: Context) {
 
     @Suppress("unused")
     @JavascriptInterface
+    fun onPlaybackError(message: String) {
+        android.util.Log.e("Monochrome", "Playback error: $message")
+        ToastHelper.showToast(context, "Playback error: $message")
+    }
+
+    @Suppress("unused")
+    @JavascriptInterface
     fun requestFolderPicker(callbackId: String) {
         (context as? MainActivity)?.launchFolderPicker(callbackId)
     }

@@ -274,6 +274,7 @@ class MainActivity : AppCompatActivity() {
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
             val url = request.url
             val host = url.host ?: return null
+            val path = url.path?.lowercase() ?: ""
             val method = (request.method ?: "GET").uppercase()
 
             val isWorker = host.endsWith(".workers.dev")
@@ -282,16 +283,40 @@ class MainActivity : AppCompatActivity() {
                     host == "lossless.wtf" || host == "localhost" || host == "127.0.0.1"
             val isMonochrome = isMainDomain || host.endsWith(".monochrome.tf") || host.startsWith("auth.")
 
+            val audioExtensions = listOf(".mp3", ".flac", ".wav", ".aac", ".ogg", ".opus", ".m4a", ".alac", ".aiff", ".dsf", ".dff", ".wv", ".ape")
+            val audioMimePrefixes = listOf("audio/", "application/ogg", "application/octet-stream")
+            val isAudioFile = audioExtensions.any { path.endsWith(it) }
+
+            val cdnHosts = listOf(
+                "tidal.com", "listen.tidal", "tidal-hifi",
+                "qobuz.com", "static.qobuz",
+                "deezer.com", "dzcdn.net", "deemix",
+                "amazonaws.com", "cloudfront.net", "cloudfront.com",
+                "archive.org", "internetarchive",
+                "media.githubusercontent.com", "raw.githubusercontent.com",
+                "cdn.", "media.", "static.", "assets.", "streaming.",
+                "ssl.", "cdn1.", "cdn2.", "cdn3."
+            )
+            val isCdn = cdnHosts.any { host.contains(it) }
+
+            val passthroughHosts = listOf(
+                "discord.com", "appleid.apple.com",
+                "google.com", "accounts.google",
+                "gstatic.com", "googleusercontent.com",
+                "play.google.com"
+            )
+            val isPassthrough = passthroughHosts.any { host.contains(it) }
+
             return when {
                 isLocalFile -> serveLocalFile(request)
-                (isMonochrome || isWorker) && (method == "GET" || method == "OPTIONS") -> {
+                (isMonochrome || isWorker || isCdn) && (method == "GET" || method == "OPTIONS") -> {
                     if (method == "OPTIONS") NetworkHelper.corsOkResponse(request.requestHeaders)
                     else NetworkHelper.proxyWithCors(request, method)
                 }
-                host.contains("discord.com") || host.contains("appleid.apple.com") ||
-                        host.contains("google.com") || host.contains("accounts.google") ||
-                        host.contains("gstatic.com") || host.contains("googleusercontent.com") ||
-                        host.contains("play.google.com") -> null
+                isAudioFile && method == "GET" -> {
+                    NetworkHelper.proxyWithCors(request, method)
+                }
+                isPassthrough -> null
                 else -> null
             }
         }
