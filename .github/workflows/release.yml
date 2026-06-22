@@ -27,9 +27,9 @@ jobs:
 
     - name: Generate Release Keystore
       run: |
-        mkdir -p app/keystore
+        mkdir -p keystore
         keytool -genkey -v \
-          -keystore app/keystore/release.jks \
+          -keystore keystore/release.jks \
           -keyalg RSA \
           -keysize 2048 \
           -validity 10000 \
@@ -54,7 +54,7 @@ jobs:
     - name: Sign APK
       run: |
         apksigner sign \
-          --ks app/keystore/release.jks \
+          --ks keystore/release.jks \
           --ks-pass pass:${{ secrets.KEYSTORE_PASSWORD }} \
           --ks-key-alias monochrome \
           --key-pass pass:${{ secrets.KEY_PASSWORD }} \
