@@ -17,14 +17,10 @@ android {
 
     signingConfigs {
         release {
-            def keystorePath = System.getenv("KEYSTORE_PATH") ?: "keystore/release.jks"
-            def keystoreFile = file(keystorePath)
-            if (keystoreFile.exists()) {
-                storeFile keystoreFile
-                storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
-                keyAlias System.getenv("KEY_ALIAS") ?: "monochrome"
-                keyPassword System.getenv("KEY_PASSWORD") ?: ""
-            }
+            storeFile file("keystore/release.jks")
+            storePassword System.getenv("KEYSTORE_PASSWORD") ?: ""
+            keyAlias System.getenv("KEY_ALIAS") ?: "monochrome"
+            keyPassword System.getenv("KEY_PASSWORD") ?: ""
         }
     }
 
@@ -74,5 +70,4 @@ dependencies {
     implementation 'androidx.media:media:1.7.0'
     implementation 'androidx.media2:media2-session:1.3.0'
     implementation 'androidx.lifecycle:lifecycle-service:2.8.7'
-    implementation 'androidx.core:core-ktx:1.15.0'
 }
