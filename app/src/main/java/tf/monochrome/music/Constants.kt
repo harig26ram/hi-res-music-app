@@ -469,6 +469,7 @@ object Constants {
   if(window.__mcAppleCSS) return;
   window.__mcAppleCSS = true;
   var s = document.createElement('style');
+  s.id = 'mc-apple-css';
   s.textContent = `
     * { -webkit-tap-highlight-color: transparent; }
     body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
@@ -512,9 +513,31 @@ object Constants {
     ::selection {
       background: rgba(255,255,255,0.2);
     }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Player action buttons - reorder: hide cast, put queue first */
+    [class*="player-actions"], [class*="player"] [class*="actions"], [class*="player"] [class*="controls-row"] {
+      display: flex !important;
+      align-items: center !important;
+      gap: 4px !important;
+    }
+    [class*="player"] button[class*="cast"], [class*="player"] button[class*="chromecast"],
+    [class*="player"] [class*="cast"], [class*="player"] [data-action="cast"] {
+      order: 99 !important;
+      opacity: 0.4 !important;
+    }
+
+    /* Smooth content load */
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
     [class*="home"] > *, [class*="content"] > *, main > * {
-      animation: fadeIn 0.3s ease both;
+      animation: fadeIn 0.25s ease both;
+    }
+
+    /* Reduce motion for performance */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
     }
   `;
   document.head.appendChild(s);

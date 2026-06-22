@@ -28,7 +28,6 @@ import tf.monochrome.music.Constants.ACTION_PREVIOUS
 import tf.monochrome.music.Constants.APPLE_MUSIC_CSS
 import tf.monochrome.music.Constants.DEFAULT_ORIGIN
 import tf.monochrome.music.Constants.JS_HOOKS
-import tf.monochrome.music.Constants.MIME_HTML
 import tf.monochrome.music.Constants.MIME_MPEG
 import tf.monochrome.music.Constants.MIME_OCTET_STREAM
 import tf.monochrome.music.Constants.PROXY_UA
@@ -208,15 +207,18 @@ class MainActivity : AppCompatActivity() {
             mediaPlaybackRequiresUserGesture = false
             useWideViewPort = true
             loadWithOverviewMode = true
-            setSupportZoom(true)
-            builtInZoomControls = true
+            setSupportZoom(false)
+            builtInZoomControls = false
             displayZoomControls = false
             userAgentString = PROXY_UA
-            safeBrowsingEnabled = true
+            safeBrowsingEnabled = false
             cacheMode = WebSettings.LOAD_DEFAULT
             @Suppress("DEPRECATION")
             databaseEnabled = true
             setSupportMultipleWindows(false)
+            blockNetworkImage = false
+            loadsImagesAutomatically = true
+            defaultTextEncodingName = "UTF-8"
         }
 
         webView.webViewClient = createWebViewClient()
@@ -255,10 +257,10 @@ class MainActivity : AppCompatActivity() {
             CookieManager.getInstance().flush()
 
             if (binding.splashScreen.visibility == View.VISIBLE) {
-                binding.splashCredit.animate().alpha(0f).setDuration(250).start()
+                binding.splashCredit.animate().alpha(0f).setDuration(150).start()
                 binding.splashScreen.animate()
                     .alpha(0f)
-                    .setDuration(350)
+                    .setDuration(200)
                     .withEndAction {
                         binding.splashScreen.visibility = View.GONE
                         binding.splashCredit.visibility = View.GONE
@@ -266,8 +268,7 @@ class MainActivity : AppCompatActivity() {
                     .start()
             }
 
-            view.evaluateJavascript(JS_HOOKS, null)
-            view.evaluateJavascript(APPLE_MUSIC_CSS, null)
+            view.evaluateJavascript(JS_HOOKS + APPLE_MUSIC_CSS, null)
         }
 
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -283,19 +284,14 @@ class MainActivity : AppCompatActivity() {
 
             return when {
                 isLocalFile -> serveLocalFile(request)
-                isMainDomain && method == "GET" && !url.path.orEmpty().contains("oauth") -> {
-                    val acceptsHtml = request.requestHeaders?.get("Accept")?.contains(MIME_HTML, ignoreCase = true) == true
-                    val looksLikeHtml = url.path.let { it == "/" || it?.endsWith(".html") == true }
-                    if (acceptsHtml || looksLikeHtml) NetworkHelper.injectHooks(request) else null
+                (isMonochrome || isWorker) && (method == "GET" || method == "OPTIONS") -> {
+                    if (method == "OPTIONS") NetworkHelper.corsOkResponse(request.requestHeaders)
+                    else NetworkHelper.proxyWithCors(request, method)
                 }
                 host.contains("discord.com") || host.contains("appleid.apple.com") ||
                         host.contains("google.com") || host.contains("accounts.google") ||
                         host.contains("gstatic.com") || host.contains("googleusercontent.com") ||
                         host.contains("play.google.com") -> null
-                (isMonochrome || isWorker) && (method == "GET" || method == "OPTIONS") -> {
-                    if (method == "OPTIONS") NetworkHelper.corsOkResponse(request.requestHeaders)
-                    else NetworkHelper.proxyWithCors(request, method)
-                }
                 else -> null
             }
         }
@@ -303,7 +299,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun createWebChromeClient() = object : WebChromeClient() {
         override fun onConsoleMessage(consoleMessage: ConsoleMessage?): Boolean {
-            android.util.Log.d("MonochromeJS", "${consoleMessage?.messageLevel()}: ${consoleMessage?.message()} -- From line ${consoleMessage?.lineNumber()} of ${consoleMessage?.sourceId()}")
             return true
         }
     }
